@@ -531,6 +531,19 @@ try {
   ])
     assert.ok(richExport.includes(expected), expected);
   assert.ok(!richExport.includes("personal-notes"));
+  // A delayed company response must not append reports after navigation away.
+  let captureComparison;
+  const pendingComparison = new Promise((resolve) => { captureComparison = resolve; });
+  await page.route("**/api/v2/comparison?*", (route) => captureComparison(route));
+  await page.locator("[data-page=companies]").click();
+  const delayedComparison = await pendingComparison;
+  await page.locator("[data-page=research]").click();
+  await page.getByRole("heading", { name: "A clearer point of view." }).waitFor();
+  const responseFinished = page.waitForResponse((r) => r.url().includes("/api/v2/comparison?"));
+  await delayedComparison.fulfill({ json: financials });
+  await (await responseFinished).finished();
+  await page.waitForTimeout(100);
+  assert.equal(await page.getByRole("heading", { name: "Reports in your library" }).count(), 0);
   await page.locator("[data-page=settings]").click();
   await page
     .getByRole("heading", { name: "Your workspace, under control." })

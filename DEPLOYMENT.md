@@ -42,6 +42,8 @@ Official references: https://docs.github.com/en/authentication/keeping-your-acco
 
 Render Free may sleep after inactivity; local disk is disposable. Supabase remains the durable store. No keep-alive or paid fallback.
 
-Status: implementation complete locally; 55 Python tests, PostgreSQL migration tests, JavaScript syntax checks and Chrome fixture checks passed. Official source benchmarks for Reliance, Infosys and Asian Paints passed and source pages were visually checked. A private backup of the current Supabase tables is under tmp/deployment.
+Status: deployed. The private GitHub source is published at https://github.com/DUSMANTA03-arch/Stratalens, migration 002 is applied to Supabase, and the Render Free service is live at https://stratalens-uq44.onrender.com. The owner-only auth Site URL is configured for that address and public signup remains disabled.
 
-No live migration, GitHub publication or Render deployment is confirmed. Live AI extraction and hosted acceptance remain release gates. The local application is available at http://127.0.0.1:8001/; database-dependent writes require migration 002 first.
+Verification completed: 55 Python tests, PostgreSQL migration tests, JavaScript syntax checks, Chrome fixture checks, hosted anonymous-access checks, owner-session refresh, private signed PDF viewing, mobile and keyboard navigation, exports, company dashboard navigation, review queue/source viewer, and the Reliance/Infosys/Asian Paints official filing run. Reliance and Infosys indexed all pages but paused during Gemini financial extraction with partial observations retained; Asian Paints indexed all 55 pages and completed extraction. No paused job was automatically retried. A private Supabase backup is under tmp/deployment.
+
+Render Free may sleep after inactivity and its local filesystem is disposable. Durable documents, checkpoints, observations, notes and reviews remain in Supabase. The local development server is stopped.

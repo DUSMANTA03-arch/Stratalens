@@ -665,6 +665,8 @@ async function companiesPage(root) {
     financials,
   );
   await refreshFinancials();
+  // A company change or navigation may replace this dashboard during the request.
+  if (!root.contains(card)) return;
   const available = documents.filter((d) => d.data.company_id === c.id);
   root.append(
     section("Reports in your library"),

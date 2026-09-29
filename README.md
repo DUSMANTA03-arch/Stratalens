@@ -179,12 +179,12 @@ Database tests execute the real migration in PGlite/PostgreSQL, including owner 
 
 The bundled Noto Sans font is openly licensed; its license is in `assets/fonts/OFL.txt`. PDF tests verify retained rupee symbols, punctuation, multi-page output and citations; rendered output is visually inspected during development. Noto Sans covers the Latin-script reporting workflow, not every script in every Unicode language.
 
-### Hosted acceptance — pending project provisioning
+### Hosted acceptance
 
-After Supabase and Render are connected:
+The private workspace is deployed at https://stratalens-uq44.onrender.com on Render Free with Supabase persistence. Release verification status is recorded in [DEPLOYMENT.md](DEPLOYMENT.md). Use this checklist for subsequent releases:
 
 1. Verify anonymous requests cannot list documents, run jobs, or obtain signed URLs; sign in with the provisioned owner.
-2. Use three non-financial Indian companies, e.g. Infosys, Tata Motors, and Asian Paints. Confirm exact company identities and official reports yourself.
+2. Use three non-financial Indian companies: Reliance Industries, Infosys, and Asian Paints. Confirm exact company identities and official reports yourself.
 3. Upload a machine-readable annual report with financial statements after page 20; verify those pages are indexed and opened by citations.
 4. Try duplicate, revised, scanned, malformed and oversized files. Confirm their statuses and messages.
 5. Close/reopen during indexing, resume, and open a second tab. Verify one active step, retained progress and no duplicate observations.
@@ -193,7 +193,7 @@ After Supabase and Render are connected:
 8. Download all export types and verify PDF text/table layout. Inspect mobile and keyboard navigation.
 9. Exercise provider quota errors and storage failures; confirm saved work remains and no paid fallback occurs.
 
-No hosted deployment, live financial accuracy acceptance, or actual Supabase provisioning is claimed until those external projects exist and these checks are completed.
+Deployment success does not establish financial accuracy. Review extracted observations against their cited pages; incomplete or paused extraction remains visibly incomplete.
 
 
 ## Research reliability release (v0.3)
