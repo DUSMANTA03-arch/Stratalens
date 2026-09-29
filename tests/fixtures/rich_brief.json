@@ -1,0 +1,153 @@
+{
+  "claims": [
+    {
+      "id": "0",
+      "source_id": "0",
+      "entity": "A",
+      "statement": "A revenue was -20 crore.",
+      "quote": "A revenue was -20 crore.",
+      "metric": "revenue",
+      "metric_definition": "revenue from operations",
+      "value": -20,
+      "unit": "INR crore",
+      "period": "FY2025",
+      "geography": "India",
+      "segment": "total",
+      "reporting_basis": "consolidated",
+      "value_kind": "historical"
+    },
+    {
+      "id": "1",
+      "source_id": "1",
+      "entity": "B",
+      "statement": "B revenue was 40 crore.",
+      "quote": "B revenue was 40 crore.",
+      "metric": "revenue",
+      "metric_definition": "revenue from operations",
+      "value": 40,
+      "unit": "INR crore",
+      "period": "FY2025",
+      "geography": "India",
+      "segment": "total",
+      "reporting_basis": "consolidated",
+      "value_kind": "historical"
+    }
+  ],
+  "sources": [
+    {
+      "id": "0",
+      "text": "A revenue was -20 crore.",
+      "url": "https://example.com/0",
+      "title": "Report",
+      "publisher": "A"
+    },
+    {
+      "id": "1",
+      "text": "B revenue was 40 crore.",
+      "url": "https://example.com/1",
+      "title": "Report",
+      "publisher": "B"
+    }
+  ],
+  "report": {
+    "title": "Test brief",
+    "sections": [
+      {
+        "heading": "Executive summary",
+        "findings": [
+          {
+            "text": "A reports a negative value; B reports a positive value.",
+            "claim_ids": [
+              "0",
+              "1"
+            ]
+          }
+        ]
+      }
+    ],
+    "limitations": []
+  },
+  "executive_takeaway": {
+    "text": "A reports a negative value; B reports a positive value.",
+    "claim_ids": [
+      "0",
+      "1"
+    ]
+  },
+  "positioning": [
+    {
+      "entity": "A",
+      "cells": [
+        {
+          "label": "Disclosed scale",
+          "text": "A revenue was -20 crore.",
+          "claim_ids": [
+            "0"
+          ]
+        },
+        {
+          "label": "Capabilities",
+          "text": "Not established",
+          "claim_ids": []
+        },
+        {
+          "label": "Constraints",
+          "text": "Not established",
+          "claim_ids": []
+        }
+      ]
+    },
+    {
+      "entity": "B",
+      "cells": [
+        {
+          "label": "Disclosed scale",
+          "text": "B revenue was 40 crore.",
+          "claim_ids": [
+            "1"
+          ]
+        },
+        {
+          "label": "Capabilities",
+          "text": "Not established",
+          "claim_ids": []
+        },
+        {
+          "label": "Constraints",
+          "text": "Not established",
+          "claim_ids": []
+        }
+      ]
+    }
+  ],
+  "evidence_charts": [
+    {
+      "metric": "revenue",
+      "metric_definition": "revenue from operations",
+      "unit": "INR crore",
+      "period": "FY2025",
+      "geography": "India",
+      "segment": "total",
+      "reporting_basis": "consolidated",
+      "value_kind": "historical",
+      "points": [
+        {
+          "entity": "A",
+          "value": -20,
+          "claim_ids": [
+            "0"
+          ]
+        },
+        {
+          "entity": "B",
+          "value": 40,
+          "claim_ids": [
+            "1"
+          ]
+        }
+      ]
+    }
+  ],
+  "chart_note": "Charts require compatible cited numeric observations, explicit definitions and reporting basis. Historical observations, targets and forecasts are kept separate.",
+  "mode": "sample"
+}

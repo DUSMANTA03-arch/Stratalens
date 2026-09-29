@@ -1,0 +1,26 @@
+name: Test
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q
+      - run: python -m compileall -q app.py analyst
+      - run: npm ci
+      - run: npm run check:js
+      - run: npm run test:database
+      - run: npx playwright install --with-deps chromium
+      - run: |
+          uvicorn app:app --host 127.0.0.1 --port 8001 &
+          for attempt in $(seq 1 20); do curl -sf http://127.0.0.1:8001/api/health && break; sleep 1; done
+          npm run test:browser

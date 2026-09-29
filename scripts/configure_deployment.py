@@ -1,0 +1,32 @@
+"""Run locally in an interactive terminal; token input is hidden and never logged."""
+
+import getpass
+import os
+import re
+from pathlib import Path
+
+path = Path(__file__).resolve().parents[1] / ".env"
+text = path.read_text() if path.exists() else ""
+print(
+    "Paste each deployment token privately. Input is hidden. Enter leaves an existing value unchanged."
+)
+for key in ["GITHUB_TOKEN", "RENDER_API_KEY", "SUPABASE_ACCESS_TOKEN"]:
+    value = getpass.getpass(key + ": ").strip()
+    if not value:
+        continue
+    if any(c in value for c in "\n\r\"'"):
+        raise SystemExit("Unexpected token characters; no changes saved.")
+    line = key + "=" + value
+    pattern = r"^" + key + r"=.*$"
+    if re.search(pattern, text, re.M):
+        text = re.sub(pattern, lambda m: line, text, flags=re.M)
+    else:
+        text = text.rstrip() + "\n" + line + "\n"
+with os.fdopen(
+    os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), "w"
+) as stream:
+    stream.write(text)
+os.chmod(path, 0o600)
+print(
+    "Saved locally to .env. Do not commit this file or copy deployment tokens to Render."
+)

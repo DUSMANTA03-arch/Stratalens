@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:database": "node scripts/test_database.mjs",
+    "test:browser": "node scripts/test_browser.mjs",
+    "check:js": "node --check assets/app.js && node --check assets/api.js && node --check assets/ui.js && node --check assets/reports.js && node --check assets/financials.js && node --check assets/report-navigation.js && node --check assets/reliability.js && node --check assets/brief-quality.js"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "playwright": "1.62.1"
+  }
+}

@@ -1,0 +1,5 @@
+[
+  {"company":"Reliance Industries","id":"reliance","url":"https://www.ril.com/ar2024-25/pdf/Consolidated-Financial-Statements.pdf","page":24,"value":980136,"note":"Revenue from operations after GST, not gross value of sales."},
+  {"company":"Infosys","id":"infosys","url":"https://www.infosys.com/investors/reports-filings/quarterly-results/2024-2025/q4/documents/consolidated/consol-fy25-annual-finstatement.pdf","page":40,"value":162990,"note":"Consolidated revenue for year ended March 31, 2025."},
+  {"company":"Asian Paints","id":"asian-paints","url":"https://static.asianpaints.com/content/dam/annual-folder-2425/pdf/Consolidated.pdf","page":33,"value":33905.62,"note":"Revenue from operations includes other operating revenues, not only products/services."}
+]

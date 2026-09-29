@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Your private company and market research workspace."
+    />
+    <title>StrataLens · Research workspace</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/style.css" />
+    <script type="module" src="/assets/app.js"></script>
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to workspace</a>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="/"
+          ><span class="brand-icon">◈</span> StrataLens<span class="version"
+            >03</span
+          ></a
+        >
+        <div class="workspace-label">
+          <span class="live-dot"></span> PERSONAL WORKSPACE
+        </div>
+        <nav aria-label="Main navigation" id="navigation">
+          <button data-page="research" class="nav-item active">
+            <span>⌕</span> Research</button
+          ><button data-page="companies" class="nav-item">
+            <span>▦</span> Companies</button
+          ><button data-page="library" class="nav-item">
+            <span>▤</span> Library</button
+          ><button data-page="activity" class="nav-item">
+            <span>◷</span> Recent activity</button
+          ><button data-page="settings" class="nav-item">
+            <span>⚙</span> Settings
+          </button>
+        </nav>
+        <div class="sidebar-note">
+          <div class="eyebrow">A CLEARER PICTURE</div>
+          <p>
+            Understand the company.<br />Inspect the evidence.<br />Keep your
+            own judgment.
+          </p>
+        </div>
+        <div class="sidebar-bottom">
+          <span id="session-label">Private by design</span
+          ><button id="logout" class="signout-button hidden">Sign out</button>
+        </div>
+      </aside>
+      <div class="main-shell">
+        <header class="topbar">
+          <span id="breadcrumb">Workspace / Research</span
+          ><span class="topbar-note"
+            >SOURCE-LED RESEARCH <span class="live-dot"></span
+          ></span>
+        </header>
+        <main id="main" tabindex="-1">
+          <div id="notice" role="alert" class="notice hidden"></div>
+          <section id="auth-panel" class="auth-panel">
+            <div class="eyebrow">YOUR RESEARCH, CONNECTED</div>
+            <h1>From company reports<br />to a clearer point of view.</h1>
+            <p class="lede">
+              A private home for annual reports, financial comparisons, and
+              evidence you can trace.
+            </p>
+            <form id="login-form" class="login-card">
+              <h2>Welcome back</h2>
+              <p>Sign in to your personal workspace.</p>
+              <label
+                >Email<input
+                  name="email"
+                  type="email"
+                  required
+                  autocomplete="username"
+                  placeholder="you@example.com" /></label
+              ><label
+                >Password<input
+                  name="password"
+                  type="password"
+                  required
+                  autocomplete="current-password" /></label
+              ><button type="submit" class="primary">Sign in ↗</button>
+              <p id="setup-status" class="muted">
+                Checking workspace configuration…
+              </p>
+            </form>
+            <button id="sample-button" class="secondary">
+              Explore a fictional research brief →
+            </button>
+          </section>
+          <div id="workspace" class="hidden">
+            <section id="page-content"></section>
+            <section
+              id="jobs-panel"
+              class="jobs-panel"
+              aria-label="Saved processing jobs"
+            ></section>
+          </div>
+          <section
+            id="output"
+            class="output hidden"
+            aria-label="Research result"
+          ></section>
+        </main>
+        <footer>
+          StrataLens
+          <span>Source-backed research. Human judgment remains essential.</span>
+        </footer>
+      </div>
+    </div>
+    <dialog id="document-viewer" class="viewer">
+      <div class="viewer-top">
+        <h2 id="viewer-title">Source document</h2>
+        <button
+          id="close-viewer"
+          class="secondary"
+          aria-label="Close source viewer"
+        >
+          Close ×
+        </button>
+      </div>
+      <div class="viewer-body">
+        <aside id="viewer-evidence"></aside>
+        <iframe
+          id="viewer-frame"
+          title="Original report PDF"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </div>
+    </dialog>
+  </body>
+</html>
