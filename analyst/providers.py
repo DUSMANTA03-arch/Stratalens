@@ -47,6 +47,8 @@ def gemini_schema(model):
             value["items"] = convert(node["items"])
         if "enum" in node:
             value["enum"] = node["enum"]
+        elif "const" in node and node.get("type") == "string":
+            value["enum"] = [node["const"]]
         if "description" in node:
             value["description"] = node["description"]
         return value
