@@ -37,16 +37,9 @@ def extract_pages(content, document_id, start, count=PAGE_BATCH):
         for index in range(start - 1, min(start - 1 + count, len(pdf.pages))):
             page = pdf.pages[index]
             text = page.extract_text(layout=False) or ""
-            # Extremely complex pages are indexed as text; table detection is bounded.
+            # Statement rows remain in page text. Geometric table detection is
+            # expensive and its cell arrays are not consumed by this workflow.
             tables = []
-            if len(page.edges) < 1200 and len(text) < 40000:
-                for table in page.extract_tables()[:6]:
-                    tables.append(
-                        [
-                            [str(cell or "")[:500] for cell in row[:20]]
-                            for row in table[:80]
-                        ]
-                    )
             pages.append(
                 {
                     "document_id": document_id,

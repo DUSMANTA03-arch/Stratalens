@@ -27,6 +27,7 @@ const companies = [
     },
     created_at: "2026-09-01",
   },
+  { id: "55555555-5555-4555-8555-555555555555", data: { name: "Larsen & Toubro Limited (fixture)", symbol: "LT", sector: "non_financial" }, created_at: "2026-09-01" },
 ];
 const documents = [
   {
@@ -545,6 +546,17 @@ try {
   await page.waitForTimeout(100);
   assert.equal(await page.getByRole("heading", { name: "Reports in your library" }).count(), 0);
   await page.unroute("**/api/v2/comparison?*");
+  await page.getByRole("button", { name: "Company analysis", exact: true }).click();
+  const companyResearch = page.locator("#page-content form").first();
+  await companyResearch.getByLabel("Company", { exact: true }).selectOption(company);
+  assert.equal(await companyResearch.locator('input[name="documents"]').count(), 1);
+  await companyResearch.getByLabel("Company", { exact: true }).selectOption("55555555-5555-4555-8555-555555555555");
+  assert.equal(await companyResearch.locator('input[name="documents"]').count(), 0);
+  await page.locator("[data-page=companies]").click();
+  await page.getByRole("heading", { name: "Company dashboard" }).waitFor();
+  assert.equal(await page.getByLabel("Selected company", { exact: true }).inputValue(), "55555555-5555-4555-8555-555555555555");
+  await page.locator("[data-page=research]").click();
+  await page.getByRole("heading", { name: "A clearer point of view." }).waitFor();
   // A stale reviewed-only response must not replace the latest filter's data.
   await page.evaluate(async (ids) => {
     const { financialView } = await import("/assets/financials.js");

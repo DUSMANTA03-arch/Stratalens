@@ -20,12 +20,14 @@ from analyst.charts import prepare_chart
 from analyst.retrieval import download, public_address
 from analyst.workspace_jobs import advance
 from analyst.workspace_store import Store
+from analyst.company_documents import candidate_matches, validate_company_document
 
 router = APIRouter(prefix="/api/v2", dependencies=[Depends(require_owner)])
 
 
 async def get_store(owner=Depends(require_owner)):
-    return Store(owner)
+    async with Store(owner) as store:
+        yield store
 
 
 class CompanyInput(StrictModel):
@@ -310,6 +312,10 @@ async def verify_documents(store, ids):
             raise HTTPException(
                 409, "Wait for all selected documents to finish indexing."
             )
+        try:
+            await validate_company_document(store, doc)
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
 
 
 @router.post("/research")
@@ -429,7 +435,12 @@ async def conversations(store=Depends(get_store)):
 
 @router.get("/discoveries")
 async def discoveries(store=Depends(get_store)):
-    return await store.records("discovery")
+    rows = await store.records("discovery")
+    companies = {c["id"]: c for c in await store.records("company")}
+    for row in rows:
+        company = companies.get(row["data"]["company_id"])
+        row["data"]["candidates"] = [item for item in row["data"].get("candidates", []) if company and candidate_matches(item, company)]
+    return rows
 
 
 @router.get("/observations")
@@ -530,6 +541,25 @@ class NoteEdit(StrictModel):
     expected_updated_at: str
 
 
+class CompanyConfirmation(StrictModel):
+    expected_updated_at: str
+    reason: str = Field(min_length=20, max_length=1000)
+
+
+@router.post("/documents/{document_id}/confirm-company")
+async def confirm_company(document_id: UUID, body: CompanyConfirmation, store=Depends(get_store)):
+    doc = await store.record("document", document_id)
+    if doc["data"]["status"] != "identity_unverified":
+        raise HTTPException(422, "Only an unidentified report can be confirmed. A different issuer is blocked.")
+    if len(body.reason.strip()) < 20:
+        raise HTTPException(422, "Explain how you verified the issuer (at least 20 characters).")
+    await patch_record(store, "document", document_id, body.expected_updated_at, {
+        "company_identity": {"status": "owner_confirmed", "company_id": doc["data"]["company_id"], "reason": body.reason},
+        "status": "queued",
+    })
+    return job_public(await store.new_job("ingest", {"document_id": str(document_id), "phase": "inspect"}, str(uuid5(NAMESPACE_URL, "company-confirm:" + str(document_id)))))
+
+
 @router.get("/templates")
 async def templates():
     return TEMPLATES
@@ -580,6 +610,8 @@ async def get_coverage(company_id: UUID, store=Depends(get_store)):
     discoveries = await store.records(
         "discovery", **{"data->>company_id": "eq." + str(company_id)}
     )
+    for row in discoveries:
+        row["data"]["candidates"] = [item for item in row["data"].get("candidates", []) if candidate_matches(item, company)]
     return coverage(company, docs, discoveries, jobs=await store.jobs())
 
 

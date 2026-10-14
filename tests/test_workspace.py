@@ -335,6 +335,8 @@ class MemoryStore:
         return True
 
     async def record(self, kind, id):
+        if kind == "company":
+            return {"id": id, "data": {"name": "Company report", "symbol": "COMPANY"}}
         return self.documents[id]
 
     async def records(self, kind, **kw):
@@ -463,14 +465,13 @@ def test_duplicate_and_scanned_document_statuses():
 
     async def exercise():
         store = MemoryStore(job, {"doc": copy.deepcopy(doc)}, output.getvalue())
-        await advance(store, "job")
         result = await advance(store, "job")
         assert (
             result["status"] == "completed"
             and store.documents["doc"]["data"]["status"] == "unsupported"
         )
         duplicate = MemoryStore(job, {"doc": copy.deepcopy(doc)}, pdf(1))
-        duplicate.records = AsyncMock(return_value=[{"id": "already-present"}])
+        duplicate.records = AsyncMock(return_value=[{"id": "already-present", "data": {"company_id": "company1"}}])
         duplicate.remove_blob = AsyncMock()
         result = await advance(duplicate, "job")
         assert result["result"] == {"document_id": "already-present", "duplicate": True}

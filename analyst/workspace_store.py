@@ -24,37 +24,47 @@ class Store:
         self.owner = owner
         self.url = os.environ["SUPABASE_URL"].rstrip("/")
         self.key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
+        self.client = None
+
+    async def __aenter__(self):
+        self.client = httpx.AsyncClient(timeout=45)
+        return self
+
+    async def __aexit__(self, *exc):
+        await self.client.aclose()
+        self.client = None
 
     async def request(self, method, path, **kwargs):
         headers = {"apikey": self.key, "Authorization": f"Bearer {self.key}"}
         headers.update(kwargs.pop("headers", {}))
-        async with httpx.AsyncClient(timeout=45) as client:
-            try:
-                response = await client.request(
-                    method, self.url + path, headers=headers, **kwargs
-                )
-                response.raise_for_status()
-            except httpx.HTTPError as exc:
-                if (
-                    isinstance(exc, httpx.HTTPStatusError)
-                    and exc.response.status_code == 404
-                    and any(
-                        name in path
-                        for name in (
-                            "review_workspace_observation",
-                            "patch_workspace_record",
-                            "workspace_reliability_ready",
-                        )
+        try:
+            if self.client is not None:
+                response = await self.client.request(method, self.url + path, headers=headers, **kwargs)
+            else:
+                async with httpx.AsyncClient(timeout=45) as client:
+                    response = await client.request(method, self.url + path, headers=headers, **kwargs)
+            response.raise_for_status()
+        except httpx.HTTPError as exc:
+            if (
+                isinstance(exc, httpx.HTTPStatusError)
+                and exc.response.status_code == 404
+                and any(
+                    name in path
+                    for name in (
+                        "review_workspace_observation",
+                        "patch_workspace_record",
+                        "workspace_reliability_ready",
                     )
-                ):
-                    raise HTTPException(
-                        503,
-                        "The reliability database upgrade is not installed. Back up your workspace and apply migrations/002_reliability.sql in Supabase before using reviews, notes or period assignment.",
-                    ) from exc
+                )
+            ):
                 raise HTTPException(
                     503,
-                    "Workspace storage is unavailable. Check configuration or resume a paused Supabase project.",
+                    "The reliability database upgrade is not installed. Back up your workspace and apply migrations/002_reliability.sql in Supabase before using reviews, notes or period assignment.",
                 ) from exc
+            raise HTTPException(
+                503,
+                "Workspace storage is unavailable. Check configuration or resume a paused Supabase project.",
+            ) from exc
         return (
             response.json()
             if response.content and "json" in response.headers.get("content-type", "")
@@ -159,6 +169,14 @@ class Store:
             if data["url"].startswith("/")
             else data["url"]
         )
+
+    async def selected_pages(self, document_id, numbers):
+        if not numbers:
+            return []
+        return await self.request("GET", "/rest/v1/document_pages", params={
+            "owner_id": "eq." + self.owner, "document_id": "eq." + str(document_id),
+            "page": "in.(" + ",".join(str(int(n)) for n in numbers) + ")", "order": "page.asc",
+        })
 
     async def signed_url(self, path):
         data = await self.request(

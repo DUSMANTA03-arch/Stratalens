@@ -141,7 +141,7 @@ def coverage(company, documents, discoveries=(), today=None, jobs=()):
                 )
                 statuses.append(
                     "failed/unsupported"
-                    if s in {"failed", "unsupported"}
+                    if s in {"failed", "unsupported", "identity_unverified", "identity_mismatch"}
                     else "extraction incomplete"
                     if d.get("financial_warnings") or incomplete
                     else "indexed"

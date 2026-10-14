@@ -20,6 +20,7 @@ from analyst.models import StrictModel
 from analyst.providers import ProviderError, Providers
 from analyst.retrieval import download
 from analyst.workflow import build_workflow, public_result
+from analyst.company_documents import candidate_matches, report_identity, validate_company_document
 
 
 class PauseJob(Exception):
@@ -121,10 +122,10 @@ async def ingest(store, job, provider):
     records, pages = [], []
     phase = state.get("phase", "inspect")
     if phase == "inspect":
+        company = await store.record("company", data["company_id"])
         if data.get("url"):
             content, _, final = await download(data["url"], max_bytes=40_000_000)
             data["final_url"] = final
-            company = await store.record("company", data["company_id"])
             host = (urlsplit(final).hostname or "").lower()
             official = (
                 urlsplit(company["data"].get("website") or "").hostname or ""
@@ -162,6 +163,8 @@ async def ingest(store, job, provider):
         )
         duplicates = [d for d in duplicates if d["id"] != doc["id"]]
         if duplicates:
+            if duplicates[0]["data"]["company_id"] != data["company_id"]:
+                raise ValueError("This file is already assigned to another company. It cannot be reused as the selected company's report.")
             if not data.get("url"):
                 await store.remove_blob(data["path"])
             data.update(status="duplicate", duplicate_of=duplicates[0]["id"], size=0)
@@ -176,6 +179,19 @@ async def ingest(store, job, provider):
         if data.get("url"):
             await store.upload(data["path"], content)
         await store.cache_pdf(data["path"], content)
+        opening = []
+        identity = data.get("company_identity", {})
+        if identity.get("status") != "owner_confirmed" or identity.get("company_id") != company["id"]:
+            opening = await asyncio.to_thread(extract_pages, content, doc["id"], 1, 3)
+            identity = report_identity(company, opening)
+        data["company_identity"] = identity
+        if opening and info["page_count"] <= 3 and not any(len(p["text"].strip()) >= 40 for p in opening):
+            data.update(info, status="unsupported", notes=["No readable text found. Scanned-only reports require OCR, which is not enabled."])
+            return state, "completed", {"document_id": doc["id"]}, [{"id": doc["id"], "kind": "document", "data": data}], []
+        if identity["status"] != "matched" and identity["status"] != "owner_confirmed":
+            data.update(info, status="identity_" + identity["status"], indexed_pages=0,
+                        notes=[f"Selected company: {company['data']['name']}. Report issuer: {identity.get('issuer') or 'not established'}. Confirm an unidentified report before processing; a different issuer is blocked."])
+            return state, "completed", {"document_id": doc["id"], "identity_blocked": True}, [{"id": doc["id"], "kind": "document", "data": data}], []
         data.update(
             info,
             status="indexing",
@@ -183,7 +199,7 @@ async def ingest(store, job, provider):
             unreadable_pages=[],
             truncated_pages=[],
         )
-        state.update(phase="index", next_page=1)
+        state.update(phase="index", next_page=1, financial_candidates=[])
     elif phase == "index":
         content = await store.pdf_blob(data["path"])
         pages = await asyncio.to_thread(
@@ -202,6 +218,11 @@ async def ingest(store, job, provider):
             )
         )
         state["next_page"] += len(pages)
+        candidates = state.get("financial_candidates")
+        for page in pages:
+            if candidates is not None and financial_page(page):
+                priority = 0 if re.search(r"balance\s+sheet|statement\s+of\s+(?:profit|cash)|cash\s+flow\s+statement", page["text"][:1200], re.I) else 1
+                candidates.append({"page": page["page"], "priority": priority})
         data["indexed_pages"] = state["next_page"] - 1
         if state["next_page"] > data["page_count"]:
             if len(data["unreadable_pages"]) == data["page_count"]:
@@ -217,9 +238,16 @@ async def ingest(store, job, provider):
                     pages,
                 )
             state.update(phase="financials", next_page=1)
+            if candidates is not None:
+                state.update(financial_page_numbers=[p["page"] for p in sorted(candidates, key=lambda p: (p["priority"], p["page"]))], next_financial_index=0)
             data["status"] = "extracting"
     elif phase == "financials":
-        batch = await store.pages(doc["id"], state["next_page"], state["next_page"] + 7)
+        planned = state.get("financial_page_numbers")
+        if planned is not None:
+            numbers = planned[state.get("next_financial_index", 0):state.get("next_financial_index", 0) + 8]
+            batch = await store.selected_pages(doc["id"], numbers) if numbers else []
+        else:
+            batch = await store.pages(doc["id"], state["next_page"], state["next_page"] + 7)
         selected = [p for p in batch if financial_page(p)]
         if selected:
             extraction = await provider.generate(
@@ -252,8 +280,13 @@ async def ingest(store, job, provider):
                 dict.fromkeys(data.get("financial_warnings", []) + warnings)
             )
             data["notes"] = list(dict.fromkeys(data.get("notes", []) + warnings))
-        state["next_page"] += 8
-        if state["next_page"] > data["page_count"]:
+        if planned is not None:
+            state["next_financial_index"] += len(numbers)
+            state["next_page"] = planned[state["next_financial_index"]] if state["next_financial_index"] < len(planned) else data["page_count"] + 1
+        else:
+            state["next_page"] += 8
+        finished = state["next_financial_index"] >= len(planned) if planned is not None else state["next_page"] > data["page_count"]
+        if finished:
             if not state.get("observation_ids"):
                 data["financial_warnings"] = list(
                     dict.fromkeys(
@@ -282,6 +315,7 @@ async def document_answer(store, job, provider):
     document_companies = {}
     for did in document_ids:
         doc = await store.record("document", did)
+        await validate_company_document(store, doc)
         document_companies[did] = doc["data"]["company_id"]
         if doc["data"]["status"] not in {"ready", "extracting"}:
             raise ValueError(
@@ -496,14 +530,14 @@ async def discover(store, job, provider):
         state["query_index"] = 0
         state["candidates"] = []
     query = (
-        f"{c['name']} {c.get('symbol', '')} {state['queries'][state['query_index']]} pdf "
-        + " OR ".join("site:" + h for h in hosts)
+        f'"{c["name"].replace(chr(34), "")}" {state["queries"][state["query_index"]]} pdf ('
+        + " OR ".join("site:" + h for h in hosts) + ")"
     )
     found = await provider.search(query)
     candidates = state["candidates"]
     for item in found:
         host = (urlsplit(item.get("url", "")).hostname or "").lower()
-        if any(host == h or host.endswith("." + h) for h in hosts) and not any(
+        if any(host == h or host.endswith("." + h) for h in hosts) and candidate_matches(item, company) and not any(
             x["url"] == item["url"] for x in candidates
         ):
             candidates.append(

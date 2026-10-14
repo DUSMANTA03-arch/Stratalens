@@ -301,6 +301,8 @@ async function openResult(job) {
     notice(
       job.result.duplicate
         ? "This file is already in your library; the duplicate upload was removed."
+        : job.result.identity_blocked
+          ? "Report processing stopped because the issuer does not match or could not be identified. Inspect the report and its notes in Library."
         : "Report processing finished. Open it from Library.",
     );
   }
@@ -425,7 +427,8 @@ async function researchPage(root) {
           selectedCompany || undefined,
         ),
         docs = el("div");
-      const draw = () =>
+      const draw = () => {
+        selectedCompany = company.value;
         docs.replaceChildren(
           field(
             "Select reports to use as evidence",
@@ -439,6 +442,7 @@ async function researchPage(root) {
             ),
           ),
         );
+      };
       company.addEventListener("change", draw);
       draw();
       form.append(field("Company", company), docs);
@@ -817,6 +821,8 @@ async function libraryPage(root) {
               title.value = item.title.slice(0, 240);
               url.value = item.url;
               file.value = "";
+              period.value = item.fiscal_period || "";
+              type.value = item.period_type === "quarterly" ? "financial_results" : "annual_report";
               add.open = true;
               period.focus();
             },
@@ -847,6 +853,8 @@ async function libraryPage(root) {
         "indexing",
         "extracting",
         "unsupported",
+        "identity_unverified",
+        "identity_mismatch",
         "duplicate",
         "queued",
         "deleting",
@@ -932,6 +940,12 @@ async function libraryPage(root) {
                 "text-button",
               ),
             );
+          if (d.data.status === "identity_unverified")
+            actions.append(button("Confirm report company", async () => {
+              const reason = prompt(`Inspect the PDF first. Confirm that this report belongs to ${companyName(d.data.company_id)} and explain how you checked it (at least 20 characters).`);
+              if (!reason) return;
+              await startJob(await post(`/api/v2/documents/${d.id}/confirm-company`, { reason, expected_updated_at: d.updated_at }));
+            }, "text-button"));
           actions.append(
             button(
               "Delete",

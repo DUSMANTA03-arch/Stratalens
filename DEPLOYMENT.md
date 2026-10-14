@@ -19,7 +19,9 @@ Import the private `DUSMANTA03-arch/Stratalens` repository into the intended **H
 
 After the production URL is verified, update Supabase Authentication → URL Configuration → Site URL to the final HTTPS Vercel address. Validate owner sign-in, unauthorized access rejection, signed PDF links, saved jobs, reviews, notes, and exports on that URL. Do not disable the existing Render service until these checks pass.
 
-Vercel migration status: code and regression checks prepared; no Vercel deployment is confirmed yet. Deployment access and the user's specific bug report are still pending.
+Vercel migration status: Hobby project created, release build pending. The reported L&T/Alok Industries mix-up was confirmed in saved discovery candidates. Shared exchange domains no longer establish company identity: exchange filenames, candidate names, PDF opening pages, selected company IDs, and cross-company duplicates are checked. Saved discoveries are filtered on read. Documents with unidentified issuers require explicit owner confirmation; detected mismatches are blocked.
+
+Indexing no longer runs unused geometric table detection. Page text is unchanged in the local benchmark (eight Reliance pages: 1.41 seconds before / 1.01 seconds after). New jobs prioritize statement pages and omit unrelated pages from financial extraction while still indexing all pages. Supabase connections are reused within each request. Old checkpoints retain their previous processing scheme.
 
 Version 0.3.1 fixes saved-record responses missing their database timestamps, stale page responses overwriting a newly selected page, and stale financial-filter responses replacing current results. Gemini timeout and invalid-evidence messages are distinct, and financial extraction receives explicit original-label descriptions. Verification: 60 Python tests, database migration tests, JavaScript syntax checks, and Chrome browser regressions passed. Supabase auth and the existing hosted health endpoint responded successfully on 2026-10-14; Supabase management access returned 401 and needs a new management token only if that API is required.
 
