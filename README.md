@@ -1,6 +1,6 @@
 # StrataLens v2
 
-A private, hosted research workspace for Indian listed companies. Built with FastAPI, LangGraph, Gemini, Tavily, and Supabase. The current deployment target is **Vercel Hobby + Supabase Free**. Durable data stays in Supabase; the existing Render deployment remains available during the move. See [DEPLOYMENT.md](DEPLOYMENT.md) for setup and verification status.
+A private, hosted research workspace for Indian listed companies. Built with FastAPI, LangGraph, Gemini, Tavily, and Supabase. The current deployment target is **Vercel Hobby + Supabase Free**. Durable data stays in Supabase; Production is available at [StrataLens](https://stratalens-eta.vercel.app). See [DEPLOYMENT.md](DEPLOYMENT.md) for setup and verification status.
 
 ## What is implemented
 
@@ -69,7 +69,7 @@ Browser sessions only have read access under RLS. All mutations pass through the
 
 ## Deploy on Render Free
 
-1. Put this folder in a private Git repository and connect it to Render. This supplied workspace is not currently a Git checkout; create the repository before importing it.
+1. Put this folder in a private Git repository and connect it to Render. The private source repository is DUSMANTA03-arch/Stratalens.
 2. Choose a **Blueprint** using `render.yaml`, or create a Python Web Service with:
    - Build command: `pip install -r requirements.txt`
    - Start command: `uvicorn app:app --host 0.0.0.0 --port $PORT --proxy-headers`
@@ -181,7 +181,7 @@ The bundled Noto Sans font is openly licensed; its license is in `assets/fonts/O
 
 ### Hosted acceptance
 
-The private workspace is deployed at https://stratalens-uq44.onrender.com on Render Free with Supabase persistence. Release verification status is recorded in [DEPLOYMENT.md](DEPLOYMENT.md). Use this checklist for subsequent releases:
+The private workspace is deployed at https://stratalens-eta.vercel.app on Vercel Hobby with Supabase persistence. Release verification status is recorded in [DEPLOYMENT.md](DEPLOYMENT.md). Use this checklist for subsequent releases:
 
 1. Verify anonymous requests cannot list documents, run jobs, or obtain signed URLs; sign in with the provisioned owner.
 2. Use three non-financial Indian companies: Reliance Industries, Infosys, and Asian Paints. Confirm exact company identities and official reports yourself.
@@ -202,7 +202,7 @@ New research includes a cited executive takeaway, an evidence-backed positioning
 
 Company dashboards include report coverage (three completed annual periods and eight quarters), editable financial year-end, explicit period assignment, and a financial review queue beside the original PDF. Corrections invalidate review; observations remain available with unreviewed labels unless the owner selects Reviewed only. Personal notes remain separate from evidence and exports.
 
-Existing Supabase projects must back up workspace tables, then apply `migrations/002_reliability.sql` once. Settings shows schema readiness. See [DEPLOYMENT.md](DEPLOYMENT.md) for private GitHub and Render Free setup, secure token entry, migration order, and rollback.
+Existing Supabase projects must back up workspace tables, then apply `migrations/002_reliability.sql` once. Settings shows schema readiness. See [DEPLOYMENT.md](DEPLOYMENT.md) for private GitHub and Vercel Hobby setup, secure token entry, migration order, and rollback.
 
 Verification commands:
 

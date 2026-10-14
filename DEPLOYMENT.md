@@ -1,6 +1,6 @@
 # StrataLens release setup
 
-Deployment target: Vercel Hobby + existing Supabase. GitHub owner: DUSMANTA03-arch. The prior Render service stays available until Vercel verification succeeds.
+Deployment target: Vercel Hobby + existing Supabase. GitHub owner: DUSMANTA03-arch. Production: https://stratalens-eta.vercel.app. The prior Render service remains available.
 Never paste keys into chat or commit `.env`. Deployment keys below are for local setup only; do not copy them into the application environment.
 
 ## Vercel move (v0.3.1)
@@ -19,11 +19,11 @@ Import the private `DUSMANTA03-arch/Stratalens` repository into the intended **H
 
 After the production URL is verified, update Supabase Authentication → URL Configuration → Site URL to the final HTTPS Vercel address. Validate owner sign-in, unauthorized access rejection, signed PDF links, saved jobs, reviews, notes, and exports on that URL. Do not disable the existing Render service until these checks pass.
 
-Vercel migration status: Hobby project created, release build pending. The reported L&T/Alok Industries mix-up was confirmed in saved discovery candidates. Shared exchange domains no longer establish company identity: exchange filenames, candidate names, PDF opening pages, selected company IDs, and cross-company duplicates are checked. Saved discoveries are filtered on read. Documents with unidentified issuers require explicit owner confirmation; detected mismatches are blocked.
+Vercel migration status (2026-10-14): production deployed and verified on https://stratalens-eta.vercel.app. The owner confirmed the Supabase authentication Site URL update. GitHub main is connected for automatic deployments; runtime credentials are encrypted project settings. Native Python builds install the pinned dependencies from pyproject.toml. The reported L&T/Alok Industries mix-up was confirmed in saved discovery candidates. Shared exchange domains no longer establish company identity: exchange filenames, candidate names, PDF opening pages, selected company IDs, and cross-company duplicates are checked. Saved discoveries are filtered on read. Documents with unidentified issuers require explicit owner confirmation; detected mismatches are blocked.
 
 Indexing no longer runs unused geometric table detection. Page text is unchanged in the local benchmark (eight Reliance pages: 1.41 seconds before / 1.01 seconds after). New jobs prioritize statement pages and omit unrelated pages from financial extraction while still indexing all pages. Supabase connections are reused within each request. Old checkpoints retain their previous processing scheme.
 
-Version 0.3.1 fixes saved-record responses missing their database timestamps, stale page responses overwriting a newly selected page, and stale financial-filter responses replacing current results. Gemini timeout and invalid-evidence messages are distinct, and financial extraction receives explicit original-label descriptions. Verification: 60 Python tests, database migration tests, JavaScript syntax checks, and Chrome browser regressions passed. Supabase auth and the existing hosted health endpoint responded successfully on 2026-10-14; Supabase management access returned 401 and needs a new management token only if that API is required.
+Version 0.3.1 fixes saved-record responses missing their database timestamps, stale page responses overwriting a newly selected page, and stale financial-filter responses replacing current results. Gemini timeout and invalid-evidence messages are distinct, and financial extraction receives explicit original-label descriptions. Verification: 69 Python tests, database migration tests, JavaScript syntax checks, and Chrome browser regressions passed. Supabase auth and the existing hosted health endpoint responded successfully on 2026-10-14; Supabase management access returned 401 and needs a new management token only if that API is required.
 
 References: https://vercel.com/docs/frameworks/backend/fastapi and https://vercel.com/docs/functions/limitations.
 
@@ -71,3 +71,11 @@ Previous release status (2026-09-29): the private GitHub source was published at
 Verification completed: 55 Python tests, PostgreSQL migration tests, JavaScript syntax checks, Chrome fixture checks, hosted anonymous-access checks, owner-session refresh, private signed PDF viewing, mobile and keyboard navigation, exports, company dashboard navigation, review queue/source viewer, and the Reliance/Infosys/Asian Paints official filing run. Reliance and Infosys indexed all pages but paused during Gemini financial extraction with partial observations retained; Asian Paints indexed all 55 pages and completed extraction. No paused job was automatically retried. A private Supabase backup is under tmp/deployment.
 
 Render Free may sleep after inactivity and its local filesystem is disposable. Durable documents, checkpoints, observations, notes and reviews remain in Supabase. The local development server is stopped.
+
+## Vercel production verification — 2026-10-14
+
+Hosted checks passed for owner sessions and refresh, secure cookies, anonymous access rejection, private signed PDFs, provider/schema readiness, notes, saved brief exports, mobile layout, keyboard navigation, templates, and company-scoped document selection. Saved L&T discoveries exclude the Alok Industries filing.
+
+Live company analysis completed with one model call and a supported citation to the selected Reliance consolidated statement. The cited FY2024–25 revenue of ₹9,80,136 crore equals gross sales ₹10,71,174 crore less GST ₹91,038 crore, checked against physical PDF page 8. Retrieval prioritizes relevant statement pages. The model selects constrained excerpt identifiers; the server supplies original quotation text, document identity, and PDF page before exact quotation validation. Unsupported answers remain withheld.
+
+Existing Reliance and Infosys financial extraction jobs remain paused with partial observations retained. This release does not mark their figures reviewed or resume them automatically. Full indexing still covers every readable page within the 40 MB / 600-page limits; provider quotas and bounded execution can require explicit resume. No new database migration was needed. The local server is stopped. Release tag: v0.3.1.
