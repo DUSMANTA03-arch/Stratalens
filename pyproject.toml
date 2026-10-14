@@ -3,6 +3,19 @@ name = "research-analyst"
 version = "0.3.1"
 description = "Evidence-first market research with LangGraph"
 requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi==0.141.1",
+  "uvicorn==0.52.4",
+  "langgraph==1.2.11",
+  "google-genai==1.75.0",
+  "httpx==0.28.1",
+  "pydantic==2.13.5",
+  "trafilatura==2.2.0",
+  "pdfplumber==0.11.10",
+  "python-dotenv==1.2.3",
+  "Pillow==12.3.0",
+  "reportlab==4.5.1",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
