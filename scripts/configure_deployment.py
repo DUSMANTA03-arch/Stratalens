@@ -7,14 +7,16 @@ import argparse
 from pathlib import Path
 
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--vercel", action="store_true", help="Configure Vercel instead of Render deployment access")
+choice = parser.add_mutually_exclusive_group()
+choice.add_argument("--vercel", action="store_true", help="Configure only Vercel deployment access")
+choice.add_argument("--github", action="store_true", help="Configure only private repository publication access")
 args = parser.parse_args()
 path = Path(__file__).resolve().parents[1] / ".env"
 text = path.read_text() if path.exists() else ""
 print(
     "Paste each deployment token privately. Input is hidden. Enter leaves an existing value unchanged."
 )
-keys = ["GITHUB_TOKEN", "VERCEL_TOKEN" if args.vercel else "RENDER_API_KEY", "SUPABASE_ACCESS_TOKEN"]
+keys = ["VERCEL_TOKEN"] if args.vercel else ["GITHUB_TOKEN"] if args.github else ["GITHUB_TOKEN", "RENDER_API_KEY", "SUPABASE_ACCESS_TOKEN"]
 for key in keys:
     value = getpass.getpass(key + ": ").strip()
     if not value:

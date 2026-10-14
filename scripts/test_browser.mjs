@@ -379,7 +379,7 @@ try {
   await page
     .getByRole("button", { name: "Peer comparison", exact: true })
     .click();
-  await page.locator("input[name=companies]").check();
+  await page.locator(`input[name=companies][value="${company}"]`).check();
   await page.getByRole("button", { name: "Compare financials ↗" }).click();
   await page.getByRole("button", { name: "Download financial CSV" }).waitFor();
   await page.locator("[data-page=research]").click();
