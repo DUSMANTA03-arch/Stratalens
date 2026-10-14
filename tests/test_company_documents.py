@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 import app
 from analyst.company_documents import candidate_matches, report_identity, validate_company_document
 from analyst.documents import extract_pages
-from analyst.workspace_jobs import ingest, document_answer, DocumentAnswer
+from analyst.workspace_jobs import ingest, document_answer, SourceAnswer, bound_source_answer
 from analyst.financials import FinancialExtraction
 from analyst.workspace_api import get_store
 from test_workspace import MemoryStore, pdf
@@ -23,6 +23,8 @@ def test_exchange_filename_and_issuer_reject_alok_for_lt():
     assert candidate_matches({"title": "[PDF] LARSEN & TOUBRO - NSE", "url": "https://nsearchives.nseindia.com/example.pdf"}, LT)
     identity = report_identity(LT, [{"text": "Alok Industries Limited\nAnnual Report 2025-26\nCustomer: Larsen & Toubro Limited"}])
     assert identity["status"] == "mismatch" and identity["issuer"] == "Alok Industries Limited"
+    assert report_identity(LT, [{"text": "ALOK INDUSTRIES LIMITED\nANNUAL REPORT"}])["status"] == "mismatch"
+    assert report_identity(LT, [{"text": "E2E NETWORKS LIMITED\nANNUAL REPORT"}])["status"] == "mismatch"
     assert report_identity(LT, [{"text": "LARSEN & TOUBRO LIMITED\nAnnual Report"}])["status"] == "matched"
     assert report_identity(LT, [{"text": "L&T\nIntegrated Annual Report"}])["status"] == "matched"
     assert report_identity(LT, [{"text": "Annual report 2025-26"}])["status"] == "unverified"
@@ -87,13 +89,24 @@ def test_financial_question_prioritizes_source_statement_not_boilerplate():
     store.records = AsyncMock(return_value=[{"data": {"company_id": "lt", "metric": "revenue", "page": 25, "quote": quote}}])
     store.selected_pages = AsyncMock(return_value=[{"document_id": "d", "page": 25, "text": "Consolidated statement of profit and loss\n" + quote}])
     provider = type("Provider", (), {})()
-    provider.generate = AsyncMock(return_value=DocumentAnswer(title="Revenue", passages=[{"heading": "Executive takeaway", "text": "Reported revenue was 1,250 crore.", "citations": [{"document_id": "d", "page": 25, "quote": quote}]}], limitations=[], follow_up_questions=[]))
+    provider.generate = AsyncMock(return_value=SourceAnswer(title="Revenue", passages=[{"heading": "Executive takeaway", "text": "Reported revenue was 1,250 crore.", "citations": [{"source_id": "S1", "quote": quote}]}], limitations=[], follow_up_questions=[]))
     state, status, result, _, _ = asyncio.run(document_answer(store, {"id": "job", "kind": "research", "state": {"mode": "company", "question": "Using only selected consolidated statements, explain revenue from operations.", "document_ids": ["d"], "company_ids": ["lt"]}}, provider))
     assert status == "completed" and result["passages"]
     supplied = provider.generate.call_args.args[2]["pages"]
     assert supplied[0]["page"] == 25 and supplied[0]["source_quotes"] == [quote]
     assert len(supplied) == 4 and state["pages_retrieved"] == 4
     assert "management" not in store.rpc.call_args.kwargs["query"]
+
+
+def test_source_ids_bind_physical_pages_and_reject_unknown_sources():
+    quote = "Revenue from operations reached INR 125 crore."
+    pages = [{"source_id": "S1", "document_id": "d", "page": 8, "text": quote + "\nPrinted page 196"}]
+    def answer(source="S1", text=quote):
+        return SourceAnswer(title="Revenue", passages=[{"heading": "Revenue", "text": "Revenue was 125 crore.", "citations": [{"source_id": source, "quote": text}]}], limitations=[], follow_up_questions=[])
+    result = bound_source_answer(answer(), pages)
+    assert result["passages"][0]["citations"][0]["page"] == 8
+    assert not bound_source_answer(answer("S196"), pages)["passages"]
+    assert not bound_source_answer(answer(text="Invented revenue was INR 200 crore."), pages)["passages"]
 
 
 def test_mismatched_report_cannot_be_owner_confirmed(owner_session):

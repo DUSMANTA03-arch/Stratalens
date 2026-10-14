@@ -28,7 +28,7 @@ def report_identity(company, pages):
         line = re.sub(r"^(?:to\s+the\s+members\s+of|company\s*:)\s*", "", line.strip(), flags=re.I)
         if re.match(r"^(?:of|the|for|from|by|in|a|an|and)\b", line, re.I):
             continue
-        match = re.match(r"^([A-Za-z][A-Za-z &.'’()-]{2,85}?\b(?:Limited|Ltd\.?))\b", line)
+        match = re.match(r"^([A-Za-z0-9][A-Za-z0-9 &.'’()-]{2,85}?\b(?:Limited|Ltd\.?))\b", line, re.I)
         if match and not re.search(r"\b(?:report|statement|audit|financial|notes)\b", match[1], re.I):
             issuer = match[1].strip()
             break
