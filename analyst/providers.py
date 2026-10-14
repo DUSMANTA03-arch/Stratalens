@@ -6,6 +6,7 @@ import time
 from datetime import date
 
 import httpx
+from pydantic import ValidationError
 from google import genai
 from google.genai import types
 
@@ -46,6 +47,8 @@ def gemini_schema(model):
             value["items"] = convert(node["items"])
         if "enum" in node:
             value["enum"] = node["enum"]
+        if "description" in node:
+            value["description"] = node["description"]
         return value
 
     return types.Schema.model_validate(convert(root))
@@ -145,6 +148,14 @@ class Providers:
             return schema.model_validate_json(response.text)
         except asyncio.CancelledError:
             raise
+        except TimeoutError as exc:
+            raise ProviderError(
+                "Gemini response timed out. Saved progress is retained; resume explicitly to retry."
+            ) from exc
+        except ValidationError as exc:
+            raise ProviderError(
+                "Gemini returned incomplete or invalid structured evidence. Saved progress is retained; no figures from this step were accepted."
+            ) from exc
         except Exception as exc:
             # SDK errors may include request details: never expose them to clients.
             code = getattr(exc, "code", None)

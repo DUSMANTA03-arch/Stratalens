@@ -39,8 +39,10 @@ export async function financialView(companyIds) {
   );
   root.append(filters, content);
   let data;
+  let loadVersion = 0;
   async function load() {
-    data = await api(
+    const version = ++loadVersion;
+    const result = await api(
       "/api/v2/comparison?" +
         companyIds
           .map((id) => "company_ids=" + encodeURIComponent(id))
@@ -49,7 +51,12 @@ export async function financialView(companyIds) {
         basis.value +
         "&reviewed_only=" +
         reviewed.checked,
-    );
+    ).catch((error) => {
+      if (version === loadVersion) throw error;
+      return null;
+    });
+    if (version !== loadVersion) return;
+    data = result;
     draw();
   }
   function draw() {

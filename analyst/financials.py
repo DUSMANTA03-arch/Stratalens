@@ -35,7 +35,7 @@ SCALES = {
 
 class Observation(StrictModel):
     metric: Metric
-    label: str
+    label: str = Field(description="Original financial statement row label, copied from the source. Do not put a reporting definition such as group_total here.")
     value: float = Field(allow_inf_nan=False)
     currency: str
     scale: Literal["units", "thousand", "lakh", "million", "crore", "billion"]
@@ -43,7 +43,7 @@ class Observation(StrictModel):
     period_end: str
     period_type: Literal["annual", "quarterly", "ytd", "instant"]
     basis: Literal["consolidated", "standalone", "unknown"]
-    definition: str
+    definition: str = Field(description="Normalized comparison definition: group_total for consolidated totals, company_total for standalone totals, basic_eps for basic EPS. This is separate from the original row label.")
     page: int = Field(ge=1, le=600)
     quote: str = Field(min_length=10)
     restated: bool

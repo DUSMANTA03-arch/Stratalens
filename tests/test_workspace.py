@@ -19,6 +19,20 @@ from analyst.financials import (
     verify_observations,
 )
 from analyst.workspace_jobs import DocumentAnswer, checked_answer, advance, PauseJob
+from analyst.workspace_store import Store
+
+
+@pytest.mark.parametrize("kind", ["company", "note"])
+def test_created_records_return_database_version_for_immediate_edits(monkeypatch, kind):
+    monkeypatch.setenv("SUPABASE_URL", "https://fixture.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "fixture-only")
+    store = Store(str(uuid4()))
+    saved = {"id": str(uuid4()), "kind": kind, "data": {"text": "Your note"},
+             "created_at": "2026-10-14T00:00:00Z", "updated_at": "2026-10-14T00:00:00Z"}
+    store.request = AsyncMock(return_value=[saved])
+    result = asyncio.run(store.put(kind, saved["data"], saved["id"]))
+    assert result == saved
+    assert "return=representation" in store.request.call_args.kwargs["headers"]["Prefer"]
 
 
 def pdf(pages=25):

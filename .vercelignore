@@ -7,3 +7,17 @@ __pycache__
 tests
 .github
 requirements-dev.txt
+node_modules
+tmp
+output
+.git
+.DS_Store
+.ruff_cache
+scripts
+migrations
+README.md
+DEPLOYMENT.md
+package.json
+package-lock.json
+render.yaml
+Dockerfile

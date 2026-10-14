@@ -1,6 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {"app.py": {"maxDuration": 300}},
+  "framework": "fastapi",
+  "regions": ["sin1"],
+  "functions": {"app.py": {"maxDuration": 300, "includeFiles": "assets/fonts/**"}},
   "headers": [{"source": "/(.*)", "headers": [
     {"key": "X-Content-Type-Options", "value": "nosniff"},
     {"key": "Referrer-Policy", "value": "no-referrer"},

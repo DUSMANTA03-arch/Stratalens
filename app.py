@@ -23,7 +23,7 @@ from urllib.parse import urlsplit
 ROOT = Path(__file__).resolve().parent
 RUN_TIMEOUT = 240
 load_dotenv(ROOT / ".env")
-app = FastAPI(title="StrataLens", version="0.3.0", docs_url=None, redoc_url=None)
+app = FastAPI(title="StrataLens", version="0.3.1", docs_url=None, redoc_url=None)
 app.include_router(auth_router)
 app.include_router(workspace_router)
 logger = logging.getLogger("analyst")

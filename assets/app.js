@@ -88,6 +88,7 @@ async function navigate(page) {
   }
   $("#output").classList.add("hidden");
   const root = $("#page-content");
+  root.dataset.viewVersion = String(Number(root.dataset.viewVersion || 0) + 1);
   root.replaceChildren();
   await {
     research: researchPage,
@@ -306,7 +307,9 @@ async function openResult(job) {
 }
 
 async function researchPage(root) {
+  const viewVersion = root.dataset.viewVersion;
   const templates = await api("/api/v2/templates");
+  if (root.dataset.viewVersion !== viewVersion) return;
   root.replaceChildren(
     heading(
       "A clearer point of view.",
@@ -1033,7 +1036,9 @@ async function libraryPage(root) {
 }
 
 async function settingsPage(root) {
+  const viewVersion = root.dataset.viewVersion;
   const data = await api("/api/v2/settings");
+  if (root.dataset.viewVersion !== viewVersion) return;
   root.replaceChildren(
     heading(
       "Your workspace, under control.",
@@ -1087,7 +1092,7 @@ async function settingsPage(root) {
     el("p", data.note, "muted"),
     el(
       "p",
-      `Application daily caps: ${data.limits.daily_model_calls} model calls and ${data.limits.daily_search_calls} searches. Providers may impose lower limits. Render Free can sleep; Supabase Free can pause after inactivity. Resume services and saved jobs when needed.`,
+      `Application daily caps: ${data.limits.daily_model_calls} model calls and ${data.limits.daily_search_calls} searches. Providers may impose lower limits. Supabase Free can pause after inactivity. Processing advances only while this tab schedules saved steps; interrupted jobs need explicit resume.`,
       "muted",
     ),
   );

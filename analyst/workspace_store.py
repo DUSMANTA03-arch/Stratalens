@@ -100,14 +100,14 @@ class Store:
             "kind": kind,
             "data": data,
         }
-        await self.request(
+        rows = await self.request(
             "POST",
             "/rest/v1/workspace_records",
             json=row,
-            headers={"Prefer": "resolution=merge-duplicates"},
+            headers={"Prefer": "resolution=merge-duplicates,return=representation"},
             params={"on_conflict": "id"},
         )
-        return row
+        return rows[0]
 
     async def new_job(self, kind, state, job_id=None):
         job = {

@@ -1,6 +1,6 @@
 # StrataLens v2
 
-A private, hosted research workspace for Indian listed companies. Built with FastAPI, LangGraph, Gemini, Tavily, and Supabase. The default deployment target is **Render Free + Supabase Free**; no durable data is stored on Render's ephemeral disk.
+A private, hosted research workspace for Indian listed companies. Built with FastAPI, LangGraph, Gemini, Tavily, and Supabase. The current deployment target is **Vercel Hobby + Supabase Free**. Durable data stays in Supabase; the existing Render deployment remains available during the move. See [DEPLOYMENT.md](DEPLOYMENT.md) for setup and verification status.
 
 ## What is implemented
 

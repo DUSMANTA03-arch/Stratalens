@@ -3,14 +3,19 @@
 import getpass
 import os
 import re
+import argparse
 from pathlib import Path
 
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--vercel", action="store_true", help="Configure Vercel instead of Render deployment access")
+args = parser.parse_args()
 path = Path(__file__).resolve().parents[1] / ".env"
 text = path.read_text() if path.exists() else ""
 print(
     "Paste each deployment token privately. Input is hidden. Enter leaves an existing value unchanged."
 )
-for key in ["GITHUB_TOKEN", "RENDER_API_KEY", "SUPABASE_ACCESS_TOKEN"]:
+keys = ["GITHUB_TOKEN", "VERCEL_TOKEN" if args.vercel else "RENDER_API_KEY", "SUPABASE_ACCESS_TOKEN"]
+for key in keys:
     value = getpass.getpass(key + ": ").strip()
     if not value:
         continue
@@ -28,5 +33,5 @@ with os.fdopen(
     stream.write(text)
 os.chmod(path, 0o600)
 print(
-    "Saved locally to .env. Do not commit this file or copy deployment tokens to Render."
+    "Saved locally to .env. Do not commit this file or copy deployment tokens to application environment settings."
 )

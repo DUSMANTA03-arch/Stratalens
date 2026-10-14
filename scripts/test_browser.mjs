@@ -544,6 +544,45 @@ try {
   await (await responseFinished).finished();
   await page.waitForTimeout(100);
   assert.equal(await page.getByRole("heading", { name: "Reports in your library" }).count(), 0);
+  await page.unroute("**/api/v2/comparison?*");
+  // A stale reviewed-only response must not replace the latest filter's data.
+  await page.evaluate(async (ids) => {
+    const { financialView } = await import("/assets/financials.js");
+    const output = document.querySelector("#output");
+    output.replaceChildren(await financialView(ids));
+    output.classList.remove("hidden");
+  }, [company]);
+  let captureReviewed;
+  const pendingReviewed = new Promise((resolve) => { captureReviewed = resolve; });
+  await page.route("**/api/v2/comparison?*", (route) => {
+    if (new URL(route.request().url()).searchParams.get("reviewed_only") === "true")
+      captureReviewed(route);
+    else return route.fulfill({ json: financials });
+  });
+  await page.locator("#output").getByLabel("Reviewed only", { exact: true }).check();
+  const staleReviewed = await pendingReviewed;
+  const latestResponse = page.waitForResponse((r) => r.url().includes("reviewed_only=false"));
+  await page.locator("#output").getByLabel("Reviewed only", { exact: true }).uncheck();
+  await (await latestResponse).finished();
+  await staleReviewed.fulfill({ json: { ...financials, rows: [], derived: [] } });
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator("#output table").count(), 1);
+  await page.unroute("**/api/v2/comparison?*");
+  // Slow Settings data must not replace a subsequently selected Companies page.
+  let captureSettings;
+  const pendingSettings = new Promise((resolve) => { captureSettings = resolve; });
+  await page.route("**/api/v2/settings", (route) => captureSettings(route));
+  await page.locator("[data-page=settings]").click();
+  const staleSettings = await pendingSettings;
+  await page.locator("[data-page=companies]").click();
+  await page.getByRole("heading", { name: "Company dashboard" }).waitFor();
+  await staleSettings.fulfill({ json: {
+    storage_bytes: 0, storage_limit: 800000000, limits: {}, usage: [], note: "Fixture"
+  } });
+  await page.waitForTimeout(100);
+  assert.equal(await page.getByRole("heading", { name: "Company dashboard" }).count(), 1);
+  assert.equal(await page.getByRole("heading", { name: "Your workspace, under control." }).count(), 0);
+  await page.unroute("**/api/v2/settings");
   await page.locator("[data-page=settings]").click();
   await page
     .getByRole("heading", { name: "Your workspace, under control." })
