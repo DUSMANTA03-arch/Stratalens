@@ -237,6 +237,7 @@ def step_summary(state, records, phase):
                 gaps=d.get("notes", []),
             )
     if "pages_retrieved" in state:
+        summary["gaps"] = list(dict.fromkeys(summary["gaps"] + state.get("answer_gaps", [])))
         summary.update(
             pages_retrieved=state["pages_retrieved"],
             supported_passages=state.get("supported_passages", 0),
